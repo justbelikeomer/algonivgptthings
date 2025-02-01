@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
+import json
 
 app = Flask(__name__)
 
@@ -22,56 +23,31 @@ TIMEOUT = 60  # 60 seconds
 
 
 # Handle Chat Requests (Supports POST)
-@app.route('/chat', methods=['POST', 'OPTIONS'])
+@app.route('/chat', methods=['POST'])
 def chat():
-    # Handle Preflight Requests
-    if request.method == "OPTIONS":
-        return jsonify({'message': 'Preflight Request Handled'}), 200
-
     try:
+        # Log the raw request for debugging
+        print("Received request:", request.data)
+
         # Ensure the request contains valid JSON
         if not request.is_json:
             return jsonify({'error': 'Invalid JSON format'}), 400
 
-        user_message = request.json.get('messages', [])
+        data = request.get_json()
+        print("Parsed JSON:", data)
+
+        user_message = data.get('messages')
 
         if not isinstance(user_message, list) or not user_message:
             return jsonify({'error': 'Messages parameter must be a non-empty list'}), 400
 
-        data = {
-            'model': 'gpt-4o',  # Change model if needed
+        payload = {
+            'model': 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B\n',  # Change model if needed
             'messages': user_message,
         }
 
-        response = requests.post(f'{BASE_URL}/chat/completions', headers=HEADERS, json=data, timeout=TIMEOUT)
+        response = requests.post(f'{BASE_URL}/chat/completions', headers=HEADERS, json=payload, timeout=TIMEOUT)
         response.raise_for_status()  # Raise error if request fails
-
-        return jsonify(response.json())
-
-    except requests.exceptions.Timeout:
-        return jsonify({'error': 'Request timed out'}), 504
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': str(e)}), 500
-
-
-# Generic API Proxy (Supports GET, POST, PUT, DELETE, OPTIONS)
-@app.route('/proxy', methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
-def proxy_request():
-    # Handle Preflight Requests
-    if request.method == "OPTIONS":
-        return jsonify({'message': 'Preflight Request Handled'}), 200
-
-    try:
-        endpoint = request.args.get('endpoint')  # Example: /chat/completions
-        if not endpoint:
-            return jsonify({'error': 'Endpoint parameter is required'}), 400
-
-        url = f'{BASE_URL}/{endpoint}'
-        method = request.method
-        data = request.json if request.data else None
-
-        response = requests.request(method, url, headers=HEADERS, json=data, timeout=TIMEOUT)
-        response.raise_for_status()
 
         return jsonify(response.json())
 
