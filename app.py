@@ -18,7 +18,7 @@ def chat():
     }
 
     data = {
-        'model': 'deepseek-r1',  # Change this model as needed
+        'model': 'gpt-4o',  # Change this model as needed
         'messages': user_message,
     }
 
