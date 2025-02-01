@@ -35,7 +35,7 @@ def chat():
             return jsonify({'error': 'Messages parameter is required'}), 400
 
         data = {
-            'model': 'gpt-4o',  # Change model if needed
+            'model': 'gpt-4o\n',  # Change model if needed
             'messages': user_message,
         }
 
