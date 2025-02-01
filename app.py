@@ -29,13 +29,17 @@ def chat():
         return jsonify({'message': 'Preflight Request Handled'}), 200
 
     try:
+        # Ensure the request contains valid JSON
+        if not request.is_json:
+            return jsonify({'error': 'Invalid JSON format'}), 400
+
         user_message = request.json.get('messages', [])
 
-        if not user_message:
-            return jsonify({'error': 'Messages parameter is required'}), 400
+        if not isinstance(user_message, list) or not user_message:
+            return jsonify({'error': 'Messages parameter must be a non-empty list'}), 400
 
         data = {
-            'model': 'gpt-4o\n',  # Change model if needed
+            'model': 'gpt-4o',  # Change model if needed
             'messages': user_message,
         }
 
@@ -79,4 +83,3 @@ def proxy_request():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
-
